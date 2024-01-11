@@ -26,6 +26,8 @@ class BaseFieldElem:
         return self.add(self, o)
     def __sub__(self, o):
         return self.add(self, self.addinv(o))
+    def __neg__(self):
+        return self.addinv(self)
     def __mul__(self, o):
         return self.mul(self, o)
     def __truediv__(self, o):
@@ -90,7 +92,7 @@ class Polynomial:
             raise TypeError('x is not in the base field')
         res = self.field(0)
         for i in sorted(self.coeffs.keys()):
-            xpowi = self.field(0)
+            xpowi = self.field(1)
             q = x
             g = i
             for j in range(i.bit_length()):
@@ -110,27 +112,36 @@ class Polynomial:
             else:
                 sum_dict[k] = v
         return Polynomial(sum_dict, self.field)
+    def __neg__(self):
+        return Polynomial({i : -self.coeffs[i] for i in self.coeffs}, self.field)
+    def __sub__(self, o):
+        return self + (-o)
     def __mul__(self, o):
         # This can even be speeded up faster using FFT but we're not doing it here
         P = self if len(self.coeffs) < len(o.coeffs) else o
         Q = o if len(self.coeffs) < len(o.coeffs) else self
+        degP = max(P.coeffs.keys())
+        degQ = max(Q.coeffs.keys())
+        # print('MUL', P, Q)
         sum_dict = {}
-        for k in range(len(P.coeffs) + len(Q.coeffs)):
-            sarrk = self.field(0)
-            for i in P.coeffs.keys():
-                if i > k:
-                    break
-                j = k-i
-                if j in Q.coeffs.keys():
-                    sarrk = sarrk + P.coeffs[i] * Q.coeffs[j]
-            if sarrk == self.field(0):
-                continue
-            sum_dict[k] = sarrk
+        for i in P.coeffs.keys():
+            for j in Q.coeffs.keys():
+                if i+j in sum_dict:
+                    sum_dict[i+j] = sum_dict[i+j] + P.coeffs[i] * Q.coeffs[j]
+                else:
+                    sum_dict[i+j] = P.coeffs[i] * Q.coeffs[j]
         return Polynomial(sum_dict, self.field)
     def __mod__(A, B):
-        # synthetic long division: A = BQ + R, then make R monic and return it
-        # TODO
-        pass
+        # synthetic long division: A = BQ + R, return R (may not be monic)
+        degA = max(A.coeffs.keys())
+        degB = max(B.coeffs.keys())
+        if degA < degB:
+            return A
+        shf = degA - degB
+        mul = A.coeffs[degA] / B.coeffs[degB]
+        Q = Polynomial({shf: mul}, A.field)
+        # print('rec', A, ':', B, ':', Q, ':', B*Q)
+        return Polynomial((A - B*Q).coeffs, A.field) % B
     def frobj(self, j):
         # sends sum a_ix^i to sum (a_i)^(p^j)x^(i*p^j) = sum a_i x^(i*p^j)
         p = self.field.char
@@ -144,6 +155,7 @@ def is_irreducible(poly):
     if n <= 3:
         for i in range(p):
             if poly.eval(poly.field(i)) == poly.field(0):
+                print('DBG', i, poly.eval(poly.field(i)))
                 return False
         return True
     else:
@@ -159,6 +171,8 @@ def init_extended_field(p, n): # q = p^n
     while not is_irreducible(base_poly):
         for i in range(n):
             base_poly.coeffs[i] = gf(random.randint(0, p-1))
+    print('MOD', base_poly)
+    return
     class ExtendedField(BaseField):
         char = p
         card = p**n
