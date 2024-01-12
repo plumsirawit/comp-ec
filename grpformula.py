@@ -90,10 +90,21 @@ def order_of(P):
 def td5et6ex8():
     gf7 = arithutil.init_prime_field(7)
     eqn = WeierstrassEquation(gf7, gf7(0), gf7(0), gf7(0), gf7(0), gf7(2))
+    print('===GF(7)===')
     for i in range(7):
         for j in range(7):
             if eqn.eval(gf7(i), gf7(j)) == gf7(0):
                 P = WeierstrassCoord(gf7, eqn, gf7(i), gf7(j))
+                print((i, j), order_of(P))
+    gf49 = arithutil.init_extended_field(7, 2)
+    eqn2 = WeierstrassEquation(gf49, gf49(0), gf49(0), gf49(0), gf49(0), gf49(2))
+    print('===GF(49)===')
+    prec = [gf49(i) for i in range(49)]
+    for i in range(49):
+        for j in range(49):
+            if eqn2.eval(prec[i], prec[j]) == prec[0]:
+                print('DBG', i, j)
+                P = WeierstrassCoord(gf49, eqn2, prec[i], prec[j])
                 print((i, j), order_of(P))
 
 td5et6ex8()

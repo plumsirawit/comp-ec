@@ -155,7 +155,7 @@ def is_irreducible(poly):
     if n <= 3:
         for i in range(p):
             if poly.eval(poly.field(i)) == poly.field(0):
-                print('DBG', i, poly.eval(poly.field(i)))
+                # print('DBG', i, poly.eval(poly.field(i)))
                 return False
         return True
     else:
@@ -165,45 +165,56 @@ def init_extended_field(p, n): # q = p^n
     gf = init_prime_field(p)
     base_arr = [gf(0) for _ in range(n+1)]
     base_arr[n] = gf(1)
-    base_poly = Polynomial(base_arr, gf)
+    modulus = Polynomial(base_arr, gf)
     for i in range(n):
-        base_poly.coeffs[i] = gf(random.randint(0, p-1))
-    while not is_irreducible(base_poly):
+        modulus.coeffs[i] = gf(random.randint(0, p-1))
+    while not is_irreducible(modulus):
         for i in range(n):
-            base_poly.coeffs[i] = gf(random.randint(0, p-1))
-    print('MOD', base_poly)
-    return
+            modulus.coeffs[i] = gf(random.randint(0, p-1))
     class ExtendedField(BaseField):
         char = p
         card = p**n
         base_field = gf
+        base_poly = modulus
         class FieldElem(BaseFieldElem):
             @classmethod
+            def __init__(self, x):
+                if isinstance(x, Polynomial):
+                    self.a = x
+                elif isinstance(x, gf.FieldElem):
+                    self.a = Polynomial([x], gf) * self.one
+                elif isinstance(x, int):
+                    self.a = Polynomial([gf(x)], gf) * self.one
+                else:
+                    raise TypeError(f'Unknown type {type(x)}')
+            @classmethod
             def add(cls, x, y):
-                return cls((x.a + y.a) % base_poly)
+                return cls((x.a + y.a) % modulus)
             @classmethod
             def addinv(cls, x):
-                return cls((p - x.a) % base_poly)
+                return cls((-x.a) % modulus)
             @classmethod
             def mul(cls, x, y):
-                return cls((x.a * y.a) % base_poly)
+                return cls((x.a * y.a) % modulus)
             @classmethod
             def mulinv(cls, x):
                 # Itoh-Tsujii
                 # https://crypto.stackexchange.com/questions/81137/itoh-tsuji-algorithm
-                # r = (p**n-1)//(p-1)
-                # l = r.bit_length()
-                # ts = [Polynomial([x.a.field(0)], x.a.field), x.a.frobj(1)]
-                # for i in range(2, l+1):
-                #     ts.append(ts[-1] * ts[-1].frobj(2**(i-2)))
-                # g = n-1
-                # buf = Polynomial([x.a.field(0)], x.a.field)
-                # while g >= 0:
-                #     buf = buf + x.a.frobj(g-2**(g.bit_length()-1)) * ts[g.bit_length()]
-                #     g -= 2**(g.bit_length()-1)
-                # den = buf * x.a
-                # return cls((x.a ** (p - 2)) % p)
-                pass
+                r = (p**n-1)//(p-1)
+                l = r.bit_length()
+                ts = [Polynomial([x.a.field(0)], x.a.field), x.a.frobj(1)]
+                for i in range(2, l):
+                    ts.append(ts[-1] * ts[-1].frobj(2**(i-2)) % modulus)
+                g = n-1
+                buf = Polynomial([x.a.field(1)], x.a.field)
+                while g > 0:
+                    buf = buf * ts[g.bit_length()].frobj(g-2**(g.bit_length()-1)) % modulus
+                    g -= 2**(g.bit_length()-1)
+                den = buf * x.a % modulus
+                return cls(buf * Polynomial([gf(1) / den.coeffs[0]], gf) % modulus)
             @classmethod
             def eql(cls, x, y):
-                return x.a == y.a
+                P = Polynomial(((x.a - y.a) % modulus).coeffs, gf)
+                return len(P.coeffs) == 1 and next(iter(P.coeffs.values())) == gf(0)
+    ExtendedField.FieldElem.one = Polynomial([gf(1)], gf) * ExtendedField.FieldElem.mulinv(ExtendedField.FieldElem(Polynomial([gf(1)], gf))).a % modulus
+    return ExtendedField()

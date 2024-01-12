@@ -9,7 +9,7 @@ MOD = Polynomial([gf(1), gf(1), gf(0), gf(1)], gf)
 
 r = (p**n-1)//(p-1)
 l = r.bit_length()
-print(l)
+print('a', a)
 ts = [Polynomial([a.field(0)], gf), a.frobj(1)]
 for i in range(2, l):
     ts.append(ts[-1] * ts[-1].frobj(2**(i-2)) % MOD)
@@ -23,13 +23,13 @@ buf = Polynomial([a.field(0)], gf)
 
 print(g)
 while g > 0:
-    print('DBG', g.bit_length())
+    print('DBG', g.bit_length(), ts[g.bit_length()].frobj(g-2**(g.bit_length()-1)))
     buf = buf + ts[g.bit_length()].frobj(g-2**(g.bit_length()-1))
     g -= 2**(g.bit_length()-1)
 den = buf * a % MOD
 
 print('here', MOD, den)
 res = a
-for i in range(123):
+for i in range(30):
     res = res * a
 print(res % MOD)
