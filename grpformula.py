@@ -1,5 +1,6 @@
 import arithutil
 
+
 class WeierstrassEquation:
     def __init__(self, field, a1, a2, a3, a4, a6):
         # these values must be field elements
@@ -19,20 +20,23 @@ class WeierstrassEquation:
             raise TypeError('a4 is not a field element')
         if not isinstance(a6, field.FieldElem):
             raise TypeError('a6 is not a field element')
-    
+
     @property
     def b2(self):
         return self.a1*self.a1 + self.field(4)*self.a2
+
     @property
     def b4(self):
         return self.field(2)*self.a4 + self.a1*self.a3
+
     @property
     def b6(self):
         return self.a3*self.a3 + self.field(4)*self.a6
+
     @property
     def b8(self):
         return self.a1*self.a1*self.a6 + self.field(4)*self.a2*self.a6 - self.a1*self.a3*self.a4 + self.a2*self.a3*self.a3 - self.a4*self.a4
-    
+
     def eval(self, x, y):
         if not isinstance(x, self.field.FieldElem):
             raise TypeError('x is not a field element')
@@ -40,9 +44,11 @@ class WeierstrassEquation:
             raise TypeError('y is not a field element')
         return y*y + self.a1*x*y + self.a3*y - x*x*x - self.a2*x*x - self.a4*x - self.a6
 
+
 class WeierstrassCoord:
     INFTY = None
     # Treat this (x, y) as a point [x, y, 1] in P^2.
+
     def __init__(self, field, eqn, x, y):
         self.field = field
         self.eqn = eqn
@@ -54,6 +60,7 @@ class WeierstrassCoord:
         self.y = y
         if not isinstance(y, field.FieldElem):
             raise TypeError('y is not a field element')
+
     def __add__(P, Q):
         if P.field != Q.field:
             raise ValueError('Base field for P and Q mismatched')
@@ -61,9 +68,11 @@ class WeierstrassCoord:
             raise ValueError('Base eqn for P and Q mismatched')
         if P.x == Q.x and P.y == Q.y:
             # duplicate this point
-            lmb = (P.field(3)*P.x*P.x + P.field(2)*P.eqn.a1*P.x + P.eqn.a4 - P.eqn.a1*P.y)/(P.field(2)*P.y + P.eqn.a1*P.x + P.eqn.a3)
+            lmb = (P.field(3)*P.x*P.x + P.field(2)*P.eqn.a1*P.x + P.eqn.a4 -
+                   P.eqn.a1*P.y)/(P.field(2)*P.y + P.eqn.a1*P.x + P.eqn.a3)
             nx = lmb*lmb + P.eqn.a1*lmb - P.eqn.a2 - P.x - P.x
-            nu = (P.field(-1)*P.x*P.x*P.x + P.eqn.a4*P.x + P.field(2)*P.eqn.a6 - P.eqn.a3*P.y)/(P.field(2)*P.y + P.eqn.a1*P.x + P.eqn.a3)
+            nu = (P.field(-1)*P.x*P.x*P.x + P.eqn.a4*P.x + P.field(2) *
+                  P.eqn.a6 - P.eqn.a3*P.y)/(P.field(2)*P.y + P.eqn.a1*P.x + P.eqn.a3)
             ny = P.field(-1)*(lmb + P.eqn.a1)*nx - nu - P.eqn.a3
             return WeierstrassCoord(P.field, P.eqn, nx, ny)
         elif P.x == Q.x:
@@ -75,17 +84,22 @@ class WeierstrassCoord:
             nu = (P.y*Q.x - Q.y*P.x)/(Q.x - P.x)
             ny = P.field(-1)*(lmb + P.eqn.a1)*nx - nu - P.eqn.a3
             return WeierstrassCoord(P.field, P.eqn, nx, ny)
+
     def __str__(self):
         return f'({self.x.__str__()}, {self.y.__str__()})'
+
 
 def order_of(P):
     i = 1
     Q = P
-    while True:
+    lim = 100
+    for _ in range(lim):
         if Q == WeierstrassCoord.INFTY:
             return i
         Q = Q + P
         i += 1
+    print('DBG: Lim hit', Q)
+
 
 def td5et6ex8():
     gf7 = arithutil.init_prime_field(7)
@@ -97,14 +111,21 @@ def td5et6ex8():
                 P = WeierstrassCoord(gf7, eqn, gf7(i), gf7(j))
                 print((i, j), order_of(P))
     gf49 = arithutil.init_extended_field(7, 2)
-    eqn2 = WeierstrassEquation(gf49, gf49(0), gf49(0), gf49(0), gf49(0), gf49(2))
+    gf49z = gf49(arithutil.Polynomial([gf49.base_field(0)], gf49.base_field))
+    gf49two = gf49(arithutil.Polynomial([gf49.base_field(2)], gf49.base_field))
+    eqn2 = WeierstrassEquation(gf49, gf49z, gf49z, gf49z, gf49z, gf49two)
     print('===GF(49)===')
-    prec = [gf49(i) for i in range(49)]
+    prec = []
+    for i in range(7):
+        for j in range(7):
+            prec.append(gf49(arithutil.Polynomial(
+                [gf49.base_field(i), gf49.base_field(j)], gf49.base_field)))
     for i in range(49):
         for j in range(49):
             if eqn2.eval(prec[i], prec[j]) == prec[0]:
                 print('DBG', i, j)
                 P = WeierstrassCoord(gf49, eqn2, prec[i], prec[j])
                 print((i, j), order_of(P))
+
 
 td5et6ex8()
