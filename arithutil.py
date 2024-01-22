@@ -1,6 +1,6 @@
 import random
 import sys
-sys.setrecursionlimit(10000)
+sys.setrecursionlimit(2000000)
 
 
 class BaseFieldElem:
@@ -58,6 +58,13 @@ class BaseField:
     def __call__(self, x):
         return self.FieldElem(x)
 
+    def __eq__(self, o):
+        if not hasattr(self, 'card') or not isinstance(self.card, int):
+            raise ValueError(f'card is invalid in {self}')
+        if not hasattr(o, 'card') or not isinstance(o.card, int):
+            raise ValueError(f'card is invalid in {o}')
+        return self.card == o.card
+
 
 def init_prime_field(p):
     class PrimeField(BaseField):
@@ -93,6 +100,9 @@ def init_prime_field(p):
 
         def __init__(self):
             self.FieldElem.field = self
+
+        def __str__(self):
+            return f'PrimeField({self.card})'
     return PrimeField()
 
 
@@ -167,15 +177,14 @@ class Polynomial:
 
     def __mod__(A, B):
         # synthetic long division: A = BQ + R, return R (may not be monic)
-        degA = max(A.coeffs.keys())
-        degB = max(B.coeffs.keys())
-        if degA < degB:
-            return Polynomial(A.coeffs, A.field)
-        shf = degA - degB
-        mul = A.coeffs[degA] / B.coeffs[degB]
-        Q = Polynomial({shf: mul}, A.field)
-        # print('DBG', degA, degB)
-        return Polynomial((A - B*Q).coeffs, A.field) % B
+        if B.deg == 0 and B.coeffs[0] == 0:
+            raise ZeroDivisionError('modulo by zero')
+        while A.deg >= B.deg:
+            shf = A.deg - B.deg
+            mul = A.coeffs[A.deg] / B.coeffs[B.deg]
+            Q = Polynomial({shf: mul}, A.field)
+            A = A - B*Q
+        return Polynomial(A.coeffs, A.field)
 
     def frobj(self, j):
         # sends sum a_ix^i to sum (a_i)^(p^j)x^(i*p^j) = sum a_i x^(i*p^j)
@@ -184,6 +193,10 @@ class Polynomial:
 
     def __str__(self):
         return ' + '.join([f'{str(self.coeffs[i])}*x^{i}' for i in sorted(self.coeffs)])
+
+    @property
+    def deg(self):
+        return max(self.coeffs.keys())
 
 
 def is_irreducible(poly):
@@ -198,22 +211,29 @@ def is_irreducible(poly):
         raise NotImplementedError()
 
 
-def init_extended_field(p, n):  # q = p^n
+def init_extended_field(p, n, modulus=None):  # q = p^n
     gf = init_prime_field(p)
     base_arr = [gf(0) for _ in range(n+1)]
     base_arr[n] = gf(1)
-    modulus = Polynomial(base_arr, gf)
-    for i in range(n):
-        modulus.coeffs[i] = gf(random.randint(0, p-1))
-    while not is_irreducible(modulus):
+    if modulus is None:
+        modulus = Polynomial(base_arr, gf)
         for i in range(n):
             modulus.coeffs[i] = gf(random.randint(0, p-1))
+        while not is_irreducible(modulus):
+            for i in range(n):
+                modulus.coeffs[i] = gf(random.randint(0, p-1))
+    else:
+        if not is_irreducible(modulus):
+            raise ValueError(f'modulus {modulus} is not irreducible')
 
     class ExtendedField(BaseField):
         char = p
         card = p**n
         base_field = gf
         base_poly = modulus
+
+        def __str__(self):
+            return f'ExtendedField({self.card})'
 
         class FieldElem(BaseFieldElem):
             def __init__(self, x):
@@ -238,13 +258,25 @@ def init_extended_field(p, n):  # q = p^n
 
             @classmethod
             def mulinv(cls, x):
+                if x == cls(0):
+                    raise ZeroDivisionError(f'zero division in class {cls}')
                 # Itoh-Tsujii
                 # https://crypto.stackexchange.com/questions/81137/itoh-tsuji-algorithm
                 r = (p**n-1)//(p-1)
                 l = r.bit_length()
                 ts = [Polynomial([x.a.field(0)], x.a.field), x.a.frobj(1)]
-                for i in range(2, l+1):
-                    ts.append(ts[-1] * ts[-1].frobj(2**(i-2)) % modulus)
+                print('BASE', x.a.frobj(1), r)
+                print('DBG-->', Polynomial({62: x.a.field(1)}, x.a.field),
+                      Polynomial({62: x.a.field(1)}, x.a.field) % modulus)
+                print('DBG-->', Polynomial({8: x.a.field(1)}, x.a.field),
+                      Polynomial({8: x.a.field(1)}, x.a.field) % modulus)
+                print('BASIC-->', Polynomial({248: x.a.field(1)}, x.a.field),
+                      Polynomial({248: x.a.field(1)}, x.a.field) % modulus)
+                for i in range(2, l):
+                    pol = ts[-1] * ts[-1].frobj(2**(i-2))
+                    print('DBGPOL', ts[-1], '::',
+                          ts[-1].frobj(2**(i-2)), '::', pol, '::', pol % modulus)
+                    ts.append(pol % modulus)
                 g = n-1
                 buf = Polynomial([x.a.field(1)], x.a.field)
                 while g > 0:
@@ -254,7 +286,7 @@ def init_extended_field(p, n):  # q = p^n
                 den = buf * x.a % modulus
                 if 0 not in den.coeffs:
                     # TODO: Fix this bug!
-                    print('BUG', den, x.a)
+                    print('BUG', buf, den, x.a)
                 return cls(buf * Polynomial([gf(1) / den.coeffs[0]], gf) % modulus)
 
             @classmethod
