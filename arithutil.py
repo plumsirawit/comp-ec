@@ -137,7 +137,7 @@ class Polynomial:
             q = x
             g = i
             for j in range(i.bit_length()):
-                if g >= 2**j:
+                if g & (1 << j):
                     xpowi = xpowi * q
                     g -= 2**j
                 q = q*q
@@ -265,17 +265,8 @@ def init_extended_field(p, n, modulus=None):  # q = p^n
                 r = (p**n-1)//(p-1)
                 l = r.bit_length()
                 ts = [Polynomial([x.a.field(0)], x.a.field), x.a.frobj(1)]
-                print('BASE', x.a.frobj(1), r)
-                print('DBG-->', Polynomial({62: x.a.field(1)}, x.a.field),
-                      Polynomial({62: x.a.field(1)}, x.a.field) % modulus)
-                print('DBG-->', Polynomial({8: x.a.field(1)}, x.a.field),
-                      Polynomial({8: x.a.field(1)}, x.a.field) % modulus)
-                print('BASIC-->', Polynomial({248: x.a.field(1)}, x.a.field),
-                      Polynomial({248: x.a.field(1)}, x.a.field) % modulus)
                 for i in range(2, l):
                     pol = ts[-1] * ts[-1].frobj(2**(i-2))
-                    print('DBGPOL', ts[-1], '::',
-                          ts[-1].frobj(2**(i-2)), '::', pol, '::', pol % modulus)
                     ts.append(pol % modulus)
                 g = n-1
                 buf = Polynomial([x.a.field(1)], x.a.field)
@@ -285,8 +276,8 @@ def init_extended_field(p, n, modulus=None):  # q = p^n
                     g -= 2**(g.bit_length()-1)
                 den = buf * x.a % modulus
                 if 0 not in den.coeffs:
-                    # TODO: Fix this bug!
-                    print('BUG', buf, den, x.a)
+                    # FIXED: Fix this bug!
+                    raise ValueError('field is invalid (check that modulus is irreducible)')
                 return cls(buf * Polynomial([gf(1) / den.coeffs[0]], gf) % modulus)
 
             @classmethod
