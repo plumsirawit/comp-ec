@@ -89,16 +89,14 @@ class WeierstrassCoord:
         return f'({self.x.__str__()}, {self.y.__str__()})'
 
 
-def order_of(P):
+def order_of(P, lim=100):
     i = 1
     Q = P
-    lim = 100
     for _ in range(lim):
         if Q == WeierstrassCoord.INFTY:
             return i
         Q = Q + P
         i += 1
-    print('DBG: Lim hit', Q)
 
 
 def td5et6ex8():
@@ -123,7 +121,6 @@ def td5et6ex8():
     for i in range(49):
         for j in range(49):
             if eqn2.eval(prec[i], prec[j]) == prec[0]:
-                print('DBG', i, j)
                 P = WeierstrassCoord(gf49, eqn2, prec[i], prec[j])
                 print((i, j), order_of(P))
 
