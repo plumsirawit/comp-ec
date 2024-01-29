@@ -1,10 +1,16 @@
-from .PrimeField import init_prime_field
-from .Polynomial import Polynomial, is_irreducible
-from .BaseField import BaseField, BaseFieldElem
+from arithutil.PrimeField import init_prime_field
+from arithutil.Polynomial import Polynomial, is_irreducible
+from arithutil.BaseField import BaseField, BaseFieldElem
 import random
 
 
 def init_extended_field(p, n, modulus=None):  # q = p^n
+    """
+    Initializes an extended field $\mathbb{F}_{p^n}$. Optionally uses modulus as
+    its irreducible modulus polynomial. The inner computation uses the
+    fact that $\mathbb{F}_{p^n}$ is isomorphic to $\mathbb{F}_{p}[T]/(\mu)$ for any
+    irreducible modulus $\mu$ of degree $n$.
+    """
     gf = init_prime_field(p)
     base_arr = [gf(0) for _ in range(n+1)]
     base_arr[n] = gf(1)

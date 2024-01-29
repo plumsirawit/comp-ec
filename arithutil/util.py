@@ -1,4 +1,7 @@
 def euclid(b, n):
+    """
+    Computes a solution $(a, m)$ to the equation $ab + mn = \gcd(b, n)$.
+    """
     # Adapted from https://github.com/lapets/egcd/blob/main/src/egcd/egcd.py
     (x0, x1, y0, y1) = (1, 0, 0, 1)
     while n != 0:

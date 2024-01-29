@@ -1,9 +1,13 @@
-from .BaseField import BaseField, BaseFieldElem
+from arithutil.BaseField import BaseField, BaseFieldElem
+from arithutil.util import euclid
 import math
-from .util import euclid
 
 
 def init_ring_Z_mod_nZ(n):
+    """
+    Initializes $\mathbb{Z}/n\mathbb{Z}$ as a fake field. `ZeroDivisionError` will be raised when
+    a division is attempted on a non-invertible element.
+    """
     # This is a fake field, but I don't want to implement another object called "rings"...
     class Z_mod_nZ(BaseField):
         char = n

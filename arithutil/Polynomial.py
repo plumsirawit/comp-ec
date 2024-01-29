@@ -1,4 +1,8 @@
 class Polynomial:
+    """
+    Structure for polynomials over a field.
+    """
+
     def __init__(self, arr, field):
         if isinstance(arr, list):
             self.field = field
@@ -21,6 +25,9 @@ class Polynomial:
                 self.coeffs[0] = self.field(0)
 
     def eval(self, x):
+        """
+        Evaluates at $x$.
+        """
         if not isinstance(x, self.field.FieldElem):
             raise TypeError('x is not in the base field')
         res = self.field(0)
@@ -79,7 +86,9 @@ class Polynomial:
         return Polynomial(A.coeffs, A.field)
 
     def frobj(self, j):
-        # sends sum a_ix^i to sum (a_i)^(p^j)x^(i*p^j) = sum a_i x^(i*p^j)
+        """
+        Frobenius map: sends $\sum a_ix^i$ to $\sum a_i^{p^j}x^{ip^j} = \sum a_i x^{ip^j}$.
+        """
         p = self.field.char
         return Polynomial({i*p**j: self.coeffs[i] for i in self.coeffs}, self.field)
 
@@ -88,10 +97,16 @@ class Polynomial:
 
     @property
     def deg(self):
+        '''
+        The degree of the polynomial.
+        '''
         return max(self.coeffs.keys())
 
 
 def is_irreducible(poly):
+    """
+    Checks irreducibility of a polynomial.
+    """
     n = len(poly.coeffs)-1
     p = poly.field.char
     if n <= 3:

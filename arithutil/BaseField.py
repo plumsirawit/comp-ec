@@ -1,4 +1,9 @@
 class BaseField:
+    """
+    A basic structure for a field. This structure should contain card, char,
+    and another class FieldElem inside it. Calling this class with `x` should
+    mean creating an element with value `x`.
+    """
     class FieldElem:
         def __init__(self):
             raise NotImplementedError(f"FieldElem isn't implemented")
@@ -15,6 +20,11 @@ class BaseField:
 
 
 class BaseFieldElem:
+    """
+    A basic structure for an element of a field. Addition, additive inverse,
+    multiplication, and multiplicative inverse should all be well-defined.
+    """
+
     def __init__(self, x):
         self.a = x
 

@@ -1,7 +1,10 @@
-from .BaseField import BaseField, BaseFieldElem
+from arithutil.BaseField import BaseField, BaseFieldElem
 
 
 def init_prime_field(p):
+    """
+    Initializes a prime field $\mathbb{F}_p$.
+    """
     class PrimeField(BaseField):
         char = p
         card = p
