@@ -23,7 +23,8 @@ buf = Polynomial([a.field(0)], gf)
 
 print(g)
 while g > 0:
-    print('DBG', g.bit_length(), ts[g.bit_length()].frobj(g-2**(g.bit_length()-1)))
+    print('DBG', g.bit_length(), ts[g.bit_length()].frobj(
+        g-2**(g.bit_length()-1)))
     buf = buf + ts[g.bit_length()].frobj(g-2**(g.bit_length()-1))
     g -= 2**(g.bit_length()-1)
 den = buf * a % MOD
