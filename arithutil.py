@@ -1,6 +1,4 @@
 import random
-import sys
-sys.setrecursionlimit(2000000)
 
 
 class BaseFieldElem:
@@ -277,7 +275,8 @@ def init_extended_field(p, n, modulus=None):  # q = p^n
                 den = buf * x.a % modulus
                 if 0 not in den.coeffs:
                     # FIXED: Fix this bug!
-                    raise ValueError('field is invalid (check that modulus is irreducible)')
+                    raise ValueError(
+                        'field is invalid (check that modulus is irreducible)')
                 return cls(buf * Polynomial([gf(1) / den.coeffs[0]], gf) % modulus)
 
             @classmethod
