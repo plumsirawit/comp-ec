@@ -82,12 +82,12 @@ class WeierstrassCoord:
         if P.eqn != Q.eqn:
             raise ValueError('Base eqn for P and Q mismatched')
         if P.is_infty:
-            return Q
+            return WeierstrassCoord(Q.field, Q.eqn, Q.x, Q.y)
         elif Q.is_infty:
-            return P
+            return WeierstrassCoord(P.field, P.eqn, P.x, P.y)
         elif P.x == Q.x and P.y == Q.y:
             # duplicate this point
-            lmb = (P.field(3)*P.x*P.x + P.field(2)*P.eqn.a1*P.x + P.eqn.a4 -
+            lmb = (P.field(3)*P.x*P.x + P.field(2)*P.eqn.a2*P.x + P.eqn.a4 -
                    P.eqn.a1*P.y)/(P.field(2)*P.y + P.eqn.a1*P.x + P.eqn.a3)
             nx = lmb*lmb + P.eqn.a1*lmb - P.eqn.a2 - P.x - P.x
             nu = (P.field(-1)*P.x*P.x*P.x + P.eqn.a4*P.x + P.field(2) *
@@ -109,6 +109,8 @@ class WeierstrassCoord:
         Returns [n](P) where P is the current point. Uses double-and-add algorithm.
         This implementation follows Fig.11.1 from [AEC by Silverman, Chap XI]
         """
+        if not isinstance(n, int):
+            raise TypeError(f'Invalid type {type(n)} for multiplication-by-m map')
         Q = self
         R = WeierstrassCoord(self.field, self.eqn, None, None) if n % 2 == 0 else self
         t = n.bit_length() - 1

@@ -30,7 +30,7 @@ def init_prime_field(p):
 
             @classmethod
             def mulinv(cls, x):
-                return cls((x.a ** (p - 2)) % p)
+                return x ** (p - 2)
 
             @classmethod
             def eql(cls, x, y):

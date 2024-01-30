@@ -15,8 +15,8 @@ def random_curve_and_point(R):
     x0 = R(random.randint(0, N - 1))
     y0 = R(random.randint(0, N - 1))
     B = y0 * y0 - x0 * x0 * x0 - A * x0
-    E = ec.grpformula.WeierstrassEquation(R, R(0), R(0), R(0), A, B)
-    return E, ec.grpformula.WeierstrassCoord(R, E, x0, y0)
+    E = ec.WeierstrassEquation(R, R(0), R(0), R(0), A, B)
+    return E, ec.WeierstrassCoord(R, E, x0, y0)
 
 
 def ecm_fac(N):

@@ -1,1 +1,2 @@
-import ec.grpformula
+from ec.grpformula import *
+from ec.elgamal import *

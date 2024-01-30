@@ -68,3 +68,15 @@ class BaseFieldElem:
 
     def __eq__(self, o):
         return self.eql(self, o)
+
+    def __pow__(self, n):
+        if not isinstance(n, int):
+            raise TypeError(f'Invalid type {type(n)} for __pow__')
+        q = self
+        t = n.bit_length() - 1
+        r = self if n % 2 == 1 else self.__class__(1)
+        for i in range(1, t+1):
+            q = q * q
+            if (n & (1 << i)) != 0:
+                r = r * q
+        return r

@@ -22,8 +22,9 @@ def alice_init(ctx):
 # Alice publishes A.
 
 
-def bob(ctx, m, k, A):
+def bob(ctx, m, A):
     q = ctx.field.card
+    k = random.randint(q // 2, q - 1)
     m1 = ctx.field(m // q)
     m2 = ctx.field(m % q)
     B1 = ctx.point.mul(k)
