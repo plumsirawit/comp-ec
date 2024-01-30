@@ -36,12 +36,12 @@ def init_ring_Z_mod_nZ(n):
             def mulinv(cls, x):
                 # If xy = kn + 1 for some k, then y corresponds to a in
                 # each solution (a, b) to the equation ax + bn = 1.
-                g = math.gcd(x, n)
+                g = math.gcd(x.a, n)
                 # If gcd(x, n) != 1, raise a zero div error
                 if g != 1:
-                    raise ZeroDivisionError(f'{x} is not invertible in Z/{n}Z')
-                a, b = euclid(x, n)
-                return a
+                    raise ZeroDivisionError(f'{x.a} is not invertible in Z/{n}Z', x.a)
+                a, b = euclid(x.a, n)
+                return cls(a)
 
             @classmethod
             def eql(cls, x, y):
