@@ -85,6 +85,14 @@ class Polynomial:
             A = A - B*Q
         return Polynomial(A.coeffs, A.field)
 
+    def gcd(self, other):
+        # TODO: implement
+        pass
+
+    def __truediv__(self, other):
+        # TODO: implement
+        pass
+
     def frobj(self, j):
         """
         Frobenius map: sends $\sum a_ix^i$ to $\sum a_i^{p^j}x^{ip^j} = \sum a_i x^{ip^j}$.
