@@ -33,6 +33,11 @@ def init_extended_field(p, n, modulus=None):  # q = p^n
 
         def __str__(self):
             return f'ExtendedField({self.card})'
+        
+        @classmethod
+        def random_element(cls):
+            arr = [gf(random.randint(0, p-1)) for _ in range(n)]
+            return cls.FieldElem(Polynomial(arr, gf))
 
         class FieldElem(BaseFieldElem):
             def __init__(self, x):

@@ -5,3 +5,4 @@ from arithutil.PrimeField import *
 from arithutil.util import *
 from arithutil.Z_mod_nZ import *
 from arithutil.RationalFunction import *
+from arithutil.sqrt import sqrt_cyclic

@@ -4,6 +4,10 @@ class BaseField:
     and another class FieldElem inside it. Calling this class with `x` should
     mean creating an element with value `x`.
     """
+
+    @classmethod
+    def random_element(cls):
+        raise NotImplementedError(f"random_element isn't implemented for {cls}")
     class FieldElem:
         def __init__(self):
             raise NotImplementedError(f"FieldElem isn't implemented")

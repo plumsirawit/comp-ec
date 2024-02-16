@@ -1,5 +1,5 @@
 from arithutil.BaseField import BaseField, BaseFieldElem
-
+import random
 
 def init_prime_field(p):
     """
@@ -8,6 +8,10 @@ def init_prime_field(p):
     class PrimeField(BaseField):
         char = p
         card = p
+
+        @classmethod
+        def random_element(cls):
+            return cls(random.randint(0, p-1))
 
         class FieldElem(BaseFieldElem):
             def __init__(self, x):
