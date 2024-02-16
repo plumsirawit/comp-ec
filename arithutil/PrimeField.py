@@ -11,7 +11,7 @@ def init_prime_field(p):
 
         @classmethod
         def random_element(cls):
-            return cls(random.randint(0, p-1))
+            return cls.FieldElem(random.randint(0, p-1))
 
         class FieldElem(BaseFieldElem):
             def __init__(self, x):

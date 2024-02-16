@@ -52,6 +52,18 @@ class WeierstrassEquation:
 
     def __str__(self):
         return f'E: Y^2Z + {self.a1}XYZ + {self.a3}YZ^2 = X^3 + {self.a2}X^2Z + {self.a4}XZ^2 + {self.a6}Z^3'
+    
+    def random_element(self):
+        while True:
+            x = self.field.random_element()
+            if self.a1 != self.field(0) or self.a3 != self.field(0):
+                raise NotImplementedError('The general case hasn\'t yet been implemented')
+            ysq = x*x*x + self.a2*x*x + self.a4*x + self.a6
+            try:
+                y = arithutil.sqrt_cyclic(self.field, ysq)
+                return WeierstrassCoord(self.field, self, x, y)
+            except ValueError:
+                pass
 
 
 class WeierstrassCoord:
@@ -103,6 +115,12 @@ class WeierstrassCoord:
             nu = (P.y*Q.x - Q.y*P.x)/(Q.x - P.x)
             ny = P.field(-1)*(lmb + P.eqn.a1)*nx - nu - P.eqn.a3
             return WeierstrassCoord(P.field, P.eqn, nx, ny)
+        
+    def __sub__(self, o):
+        return self.__add__(o.__neg__())
+
+    def __neg__(self):
+        return WeierstrassCoord(self.field, self.eqn, self.x, -self.y)
 
     def mul(self, n):
         """
